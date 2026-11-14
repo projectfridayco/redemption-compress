@@ -197,7 +197,10 @@ def reserve_derivative_rows(session, media_file: MediaFile, original: MediaItem,
         .join(Project, Project.id == MediaFile.project_id)
         .where(Project.workspace_id == workspace_id, MediaItem.status != "DELETED")
     ) or 0
-    delta = sum(max(len(data) - (existing[role].file_size_bytes or 0), 0) for role, (data, _, _) in outputs.items())
+    delta = sum(
+        max(len(data) - ((existing.get(role).file_size_bytes if existing.get(role) else 0) or 0), 0)
+        for role, (data, _, _) in outputs.items()
+    )
     if used + delta > workspace.plan.storage_limit_bytes:
         raise RuntimeError("Workspace storage limit would be exceeded by image derivatives")
 
